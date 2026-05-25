@@ -6,6 +6,8 @@ import fs from 'fs'
 import cors from 'cors'
 import dbConnection from './db/db.js'
 import User from './models/user.js'
+import bycrypt from 'bcryptjs'
+
 
 
 dbConnection()
@@ -21,10 +23,23 @@ app.post("/users", async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
+    const hashpassword = await bycrypt.hash(password, 10);
+    // bycript.compare(password, hashpassword, function(err, res) {
+    //     if (err) {
+    //         console.error("Error comparing passwords:", err);
+    //         return res.status(500).json({
+    //             success: false,
+    //             message: "Error comparing passwords",
+    //             error: err.message
+    //         });
+    //     }
+    //     console.log("Password comparison result:", res); 
+    // });
+
     const user = await User.create({
       name,
       email,
-      password
+      password : hashpassword
     });
 
     res.status(201).json({
@@ -43,6 +58,8 @@ app.post("/users", async (req, res) => {
 });
 
 
+
+
 app.get("/users", async (req, res) => { 
     try {
         const users = await User.find();
@@ -55,6 +72,41 @@ app.get("/users", async (req, res) => {
         res.status(500).json({
             success: false,
             message: "Failed to retrieve users",
+            error: error.message
+        });
+    }
+});
+
+
+app.delete("/users/:id", async (req, res) => {
+    try {
+        const userId = req.params.id;
+        await User.findByIdAndDelete(userId);
+        res.status(200).json({
+            success: true,
+            message: "User deleted successfully"
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Failed to delete user",
+            error: error.message
+        });
+    }
+});
+
+
+app.delete("/users", async (req, res) => {
+    try {
+        await User.deleteMany({});
+        res.status(200).json({
+            success: true,
+            message: "User deleted successfully"
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Failed to delete user",
             error: error.message
         });
     }
