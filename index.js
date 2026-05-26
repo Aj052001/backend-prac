@@ -58,6 +58,9 @@ app.post("/users", async (req, res) => {
 });
 
 
+// curd 
+// post ,get , update , delete
+
 
 
 app.get("/users", async (req, res) => { 
@@ -76,6 +79,8 @@ app.get("/users", async (req, res) => {
         });
     }
 });
+
+
 
 
 app.delete("/users/:id", async (req, res) => {
@@ -113,6 +118,41 @@ app.delete("/users", async (req, res) => {
 });
 
 
+app.put("/users/:id", async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const { name, email, password } = req.body;
+        const hashpassword = await bycrypt.hash(password, 10);
+
+        
+
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { name, email, password: hashpassword },
+            { returnDocument: "after" }
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "User updated successfully",
+            data: updatedUser
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Failed to update user",
+            error: error.message
+        });
+    }
+});
 
 
 
